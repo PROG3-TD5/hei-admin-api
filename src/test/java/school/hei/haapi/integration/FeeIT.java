@@ -1,6 +1,8 @@
 package school.hei.haapi.integration;
 
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,17 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static school.hei.haapi.integration.conf.TestUtils.FEE1_ID;
-import static school.hei.haapi.integration.conf.TestUtils.FEE2_ID;
-import static school.hei.haapi.integration.conf.TestUtils.FEE3_ID;
-import static school.hei.haapi.integration.conf.TestUtils.MANAGER1_TOKEN;
-import static school.hei.haapi.integration.conf.TestUtils.STUDENT1_ID;
-import static school.hei.haapi.integration.conf.TestUtils.STUDENT1_TOKEN;
-import static school.hei.haapi.integration.conf.TestUtils.STUDENT2_ID;
-import static school.hei.haapi.integration.conf.TestUtils.TEACHER1_TOKEN;
-import static school.hei.haapi.integration.conf.TestUtils.anAvailableRandomPort;
-import static school.hei.haapi.integration.conf.TestUtils.assertThrowsApiException;
-import static school.hei.haapi.integration.conf.TestUtils.setUpCognito;
+import static school.hei.haapi.integration.conf.TestUtils.*;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Testcontainers
@@ -94,6 +86,21 @@ class FeeIT {
     return fee;
   }
 
+  static Fee fee7() {
+    Fee fee = new Fee();
+    fee.setId(FEE7_ID);
+    fee.setStudentId(STUDENT1_ID);
+    fee.setStatus(Fee.StatusEnum.LATE);
+    fee.setType(Fee.TypeEnum.TUITION);
+    fee.setTotalAmount(0);
+    fee.setRemainingAmount(200000);
+    fee.setComment("Comment");
+    fee.setUpdatedAt(Instant.parse("2023-02-08T08:30:24.00Z"));
+    fee.creationDatetime(Instant.parse("2022-11-08T08:25:24.00Z"));
+    fee.setDueDatetime(Instant.parse("2023-01-15T08:25:25.00Z"));
+    return fee;
+  }
+
   static CreateFee creatableFee1() {
     return new CreateFee()
         .type(CreateFee.TypeEnum.TUITION)
@@ -119,6 +126,25 @@ class FeeIT {
     assertTrue(actual.contains(fee1()));
     assertTrue(actual.contains(fee2()));
     assertTrue(actual.contains(fee3()));
+  }
+
+  @Test
+  void fee_is_update_automatic_ok() throws ApiException {
+    ApiClient student1Client = anApiClient(STUDENT1_TOKEN);
+    PayingApi api = new PayingApi(student1Client);
+
+    Instant fixedInstant = Instant.parse("2023-01-31T08:30:00Z");
+    Clock fixedClock = Clock.fixed(fixedInstant, ZoneOffset.UTC);
+
+    Fee actualFee = api.getStudentFeeById(STUDENT1_ID, FEE1_ID);
+    List<Fee> actual = api.getStudentFees(STUDENT1_ID, 1, 100, null);
+    assertEquals(actual, List.of(fee7()));
+
+    assertTrue(actual.contains(fee7()));
+    assertTrue(actual.contains(actualFee.totalAmount((int) 220.81616064).status(Fee.StatusEnum.LATE)));
+
+    Clock systemClock = Clock.systemDefaultZone();
+    Clock.system(systemClock.getZone());
   }
 
   @Test

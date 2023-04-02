@@ -2,10 +2,12 @@ package school.hei.haapi.integration.conf;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.function.Executable;
 import school.hei.haapi.endpoint.rest.client.ApiClient;
 import school.hei.haapi.endpoint.rest.client.ApiException;
+import school.hei.haapi.endpoint.rest.model.DelayPenalty;
 import school.hei.haapi.endpoint.rest.security.cognito.CognitoComponent;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
@@ -29,6 +31,7 @@ public class TestUtils {
   public static final String FEE3_ID = "fee3_id";
   public static final String FEE4_ID = "fee4_id";
   public static final String FEE6_ID = "fee6_id";
+  public static final String FEE7_ID = "fee7_id";
   public static final String PAYMENT1_ID = "payment1_id";
   public static final String PAYMENT2_ID = "payment2_id";
   public static final String PAYMENT4_ID = "payment4_id";
@@ -89,5 +92,16 @@ public class TestUtils {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static DelayPenalty delayPenalty1() {
+    DelayPenalty delayPenalty = new DelayPenalty();
+    delayPenalty.setId("delay_penalty1_id");
+    delayPenalty.setInterestPercent(2);
+    delayPenalty.setCreationDatetime(Instant.parse("2022-11-08T08:25:24.00Z"));
+    delayPenalty.setInterestTimerate(DelayPenalty.InterestTimerateEnum.DAILY);
+    delayPenalty.setGraceDelay(10);
+    delayPenalty.setApplicabilityDelayAfterGrace(5);
+    return delayPenalty;
   }
 }
