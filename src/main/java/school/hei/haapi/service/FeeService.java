@@ -1,6 +1,7 @@
 package school.hei.haapi.service;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -14,14 +15,14 @@ import school.hei.haapi.endpoint.event.EventProducer;
 import school.hei.haapi.endpoint.event.model.TypedLateFeeVerified;
 import school.hei.haapi.endpoint.event.model.gen.LateFeeVerified;
 import school.hei.haapi.model.BoundedPageSize;
+import school.hei.haapi.model.DelayPenalty;
 import school.hei.haapi.model.Fee;
 import school.hei.haapi.model.PageFromOne;
 import school.hei.haapi.model.validator.FeeValidator;
 import school.hei.haapi.repository.FeeRepository;
 
 import static org.springframework.data.domain.Sort.Direction.DESC;
-import static school.hei.haapi.endpoint.rest.model.Fee.StatusEnum.LATE;
-import static school.hei.haapi.endpoint.rest.model.Fee.StatusEnum.PAID;
+import static school.hei.haapi.endpoint.rest.model.Fee.StatusEnum.*;
 
 @Service
 @AllArgsConstructor
@@ -31,8 +32,8 @@ public class FeeService {
   private static final school.hei.haapi.endpoint.rest.model.Fee.StatusEnum DEFAULT_STATUS = LATE;
   private final FeeRepository feeRepository;
   private final FeeValidator feeValidator;
-
   private final EventProducer eventProducer;
+  private final DelayPenaltyService delayPenaltyService;
 
   public Fee getById(String id) {
     return updateFeeStatus(feeRepository.getById(id));
@@ -71,6 +72,47 @@ public class FeeService {
     }
     return feeRepository.getByStudentId(studentId, pageable);
   }
+
+  public List<Fee> fee_modification(String studentId, PageFromOne page, BoundedPageSize pageSize,
+                                    school.hei.haapi.endpoint.rest.model.Fee.StatusEnum status){
+    List<Fee> studentFees = getFeesByStudentId(studentId, page, pageSize, status);
+    Instant currentDate = Instant.now();
+    DelayPenalty delayPenalty = delayPenaltyService.getCurrentDelayPenalty();
+    for (Fee fee : studentFees) {
+      if (fee.getRemainingAmount() > 0 && fee.getDueDatetime().isBefore(currentDate)) {
+        updateFee(fee, currentDate, delayPenalty);
+      }
+    }
+    return studentFees;
+  }
+
+  private void updateFee(Fee fee, Instant currentDate, DelayPenalty delayPenalty) {
+    Instant paymentDeadline = fee.getDueDatetime();
+    int daysLate = (int) ChronoUnit.DAYS.between(paymentDeadline, currentDate);
+    int graceDays = delayPenalty.getGraceDelay();
+    int interestDays = delayPenalty.getApplicabilityDelayAfterGrace();
+    if (daysLate <= graceDays) {
+      fee.setStatus(LATE);
+    } else if (daysLate <= graceDays + interestDays) {
+      int remainingAmount = fee.getRemainingAmount();
+      int numberOfDays = daysLate - graceDays;
+      int interestPercent = delayPenalty.getInterestPercent();
+      int updatedAmount = calculateRemainingAmount(numberOfDays, remainingAmount, interestPercent);
+      fee.setRemainingAmount(updatedAmount);
+      fee.setStatus(LATE);
+    } else {
+      fee.setStatus(LATE);
+    }
+  }
+
+  public int calculateRemainingAmount(int numberOfDay, int remainingAmount, int interestPercent){
+    int amount = remainingAmount;
+    for (int i = 1; i <= numberOfDay; i++) {
+      amount += remainingAmount * interestPercent / 100;
+    }
+    return amount;
+  }
+
 
   private Fee updateFeeStatus(Fee initialFee) {
     if (initialFee.getRemainingAmount() == 0) {

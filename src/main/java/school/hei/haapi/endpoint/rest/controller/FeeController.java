@@ -46,7 +46,7 @@ public class FeeController {
       @RequestParam PageFromOne page,
       @RequestParam("page_size") BoundedPageSize pageSize,
       @RequestParam(required = false) Fee.StatusEnum status) {
-    return feeService.getFeesByStudentId(studentId, page, pageSize, status).stream()
+    return feeService.fee_modification(studentId, page, pageSize, status).stream()
         .map(feeMapper::toRestFee)
         .collect(toUnmodifiableList());
   }
