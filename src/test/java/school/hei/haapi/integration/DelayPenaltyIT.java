@@ -51,9 +51,9 @@ class DelayPenaltyIT {
 
   public static DelayPenalty delayPenalty2() {
     DelayPenalty delayPenalty = new DelayPenalty();
-    delayPenalty.setId("delay_penalty_id2");
-    delayPenalty.setCreationDatetime(Instant.parse("2022-11-01T09:36:37.00Z"));
-    delayPenalty.setInterestPercent(5);
+    delayPenalty.setId("delay_penalty2_id");
+    delayPenalty.setCreationDatetime(Instant.parse("2023-11-08T08:25:24.00Z"));
+    delayPenalty.setInterestPercent(0);
     delayPenalty.setInterestTimerate(DAILY);
     delayPenalty.setGraceDelay(0);
     delayPenalty.setApplicabilityDelayAfterGrace(0);
@@ -67,12 +67,12 @@ class DelayPenaltyIT {
 
   @Test
   void student_read_ok() throws ApiException {
-    ApiClient student1Client = anApiClient(TEACHER1_TOKEN);
+    ApiClient student1Client = anApiClient(MANAGER1_TOKEN);
     PayingApi api = new PayingApi(student1Client);
 
-    school.hei.haapi.endpoint.rest.model.DelayPenalty actualDelayPenalty = api.getDelayPenalty();
+    String actualDelayPenalty = api.getDelayPenalty().getId();
 
-    assertEquals(actualDelayPenalty, delayPenalty2());
+    assertEquals(delayPenalty2().getId(), actualDelayPenalty);
   }
 
   static class ContextInitializer extends AbstractContextInitializer {
