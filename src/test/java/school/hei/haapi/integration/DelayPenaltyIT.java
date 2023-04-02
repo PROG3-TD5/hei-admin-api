@@ -40,8 +40,8 @@ class DelayPenaltyIT {
 
   public static DelayPenalty delayPenalty1() {
     DelayPenalty delayPenalty = new DelayPenalty();
-    delayPenalty.setId("delay_penalty_id1");
-    delayPenalty.setCreationDatetime(Instant.parse("2021-11-01T09:36:37.00Z"));
+    delayPenalty.setId("delay_penalty1_id");
+    delayPenalty.setCreationDatetime(Instant.parse("2022-11-08T08:25:24.00Z"));
     delayPenalty.setInterestPercent(2);
     delayPenalty.setInterestTimerate(DAILY);
     delayPenalty.setGraceDelay(0);
@@ -52,7 +52,7 @@ class DelayPenaltyIT {
   public static DelayPenalty delayPenalty2() {
     DelayPenalty delayPenalty = new DelayPenalty();
     delayPenalty.setId("delay_penalty2_id");
-    delayPenalty.setCreationDatetime(Instant.parse("2023-11-08T08:25:24.00Z"));
+    delayPenalty.setCreationDatetime(Instant.parse("2019-11-08T08:25:24.00Z"));
     delayPenalty.setInterestPercent(0);
     delayPenalty.setInterestTimerate(DAILY);
     delayPenalty.setGraceDelay(0);
@@ -72,7 +72,7 @@ class DelayPenaltyIT {
 
     String actualDelayPenalty = api.getDelayPenalty().getId();
 
-    assertEquals(delayPenalty2().getId(), actualDelayPenalty);
+    assertEquals(delayPenalty1().getId(), actualDelayPenalty);
   }
 
   static class ContextInitializer extends AbstractContextInitializer {
