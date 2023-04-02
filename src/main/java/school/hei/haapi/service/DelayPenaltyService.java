@@ -13,7 +13,7 @@ public class DelayPenaltyService {
 
 
     public DelayPenalty getCurrentDelayPenalty() {
-        List<DelayPenalty> delayPenalties = delayPenaltyRepository.findAll();
-        return delayPenalties.get(delayPenalties.size() -1 );
+        DelayPenalty delayPenalties = delayPenaltyRepository.findAll().get(0);
+        return delayPenalties;
     }
 }
