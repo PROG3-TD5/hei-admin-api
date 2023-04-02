@@ -11,11 +11,11 @@ import school.hei.haapi.SentryConf;
 import school.hei.haapi.endpoint.rest.api.PayingApi;
 import school.hei.haapi.endpoint.rest.client.ApiClient;
 import school.hei.haapi.endpoint.rest.client.ApiException;
-//import school.hei.haapi.endpoint.rest.model.CreateDelayPenaltyChange;
+
+import school.hei.haapi.endpoint.rest.model.DelayPenalty;
 import school.hei.haapi.endpoint.rest.security.cognito.CognitoComponent;
 import school.hei.haapi.integration.conf.AbstractContextInitializer;
 import school.hei.haapi.integration.conf.TestUtils;
-import school.hei.haapi.model.DelayPenalty;
 
 import java.time.Instant;
 
@@ -58,6 +58,7 @@ class DelayPenaltyIT {
     delayPenalty.setGraceDelay(0);
     delayPenalty.setApplicabilityDelayAfterGrace(0);
     return delayPenalty;
+
   }
 
   @BeforeEach
@@ -73,6 +74,7 @@ class DelayPenaltyIT {
     String actualDelayPenalty = api.getDelayPenalty().getId();
 
     assertEquals(delayPenalty1().getId(), actualDelayPenalty);
+
   }
 
   static class ContextInitializer extends AbstractContextInitializer {
