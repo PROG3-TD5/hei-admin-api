@@ -11,7 +11,7 @@ import school.hei.haapi.repository.DelayPenaltyRepository;
 public class DelayPenaltyService {
     public DelayPenaltyRepository delayPenaltyRepository;
 
-    public DelayPenalty getById(String id) {
-        return (delayPenaltyRepository.getById(id));
+    public DelayPenalty getDelayPenalty() {
+        return (delayPenaltyRepository.findAll().get(0));
     }
 }
